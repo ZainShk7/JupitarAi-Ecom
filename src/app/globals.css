@@ -1,0 +1,155 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/*
+  Jupitar Ecom design tokens.
+  Every hex value the app uses is defined exactly once, right here.
+  Nothing else in the codebase should contain a raw hex literal —
+  reference these custom properties (or their Tailwind utility aliases below).
+*/
+@theme {
+  --color-base: #1c1c1c; /* matte wall */
+  --color-surface: #242424; /* cards, table */
+  --color-raised: #2e2e2e; /* hover, popovers */
+  --color-hairline: #383838;
+  --color-edge: #4a4a4a;
+
+  --color-copper: #c4794f; /* primary accent */
+  --color-copper-bright: #e0a582; /* rose-gold highlight */
+  --color-mahogany: #6b2a1c; /* deep fill, chart secondary */
+  --color-oxblood: #4a1810; /* danger / kill verdict */
+
+  --color-ink: #f2ede9; /* warm off-white, never pure #fff */
+  --color-ink-dim: #a69b94;
+  --color-ink-faint: #6e6560;
+
+  --color-good: #7fa65c; /* olive-leaning green */
+  --color-warn: #d9a03c;
+  --color-bad: #b4442e;
+
+  --font-display: var(--font-archivo);
+  --font-sans: var(--font-inter);
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+}
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-display);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+}
+
+/*
+  Dark is the only theme — this app never renders a light surface.
+  Semantic (shadcn) roles are aliased onto the brand tokens above so
+  every primitive automatically picks up the copper/charcoal palette.
+*/
+:root {
+  --background: var(--color-base);
+  --foreground: var(--color-ink);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-ink);
+  --popover: var(--color-raised);
+  --popover-foreground: var(--color-ink);
+  --primary: var(--color-copper);
+  --primary-foreground: var(--color-base);
+  --secondary: var(--color-raised);
+  --secondary-foreground: var(--color-ink);
+  --muted: var(--color-raised);
+  --muted-foreground: var(--color-ink-dim);
+  --accent: var(--color-raised);
+  --accent-foreground: var(--color-copper-bright);
+  --destructive: var(--color-bad);
+  --destructive-foreground: var(--color-ink);
+  --border: var(--color-hairline);
+  --input: var(--color-hairline);
+  --ring: var(--color-copper);
+  --chart-1: var(--color-copper);
+  --chart-2: var(--color-copper-bright);
+  --chart-3: var(--color-mahogany);
+  --chart-4: var(--color-good);
+  --chart-5: var(--color-warn);
+  --radius: 10px;
+  --sidebar: var(--color-surface);
+  --sidebar-foreground: var(--color-ink);
+  --sidebar-primary: var(--color-copper);
+  --sidebar-primary-foreground: var(--color-base);
+  --sidebar-accent: var(--color-raised);
+  --sidebar-accent-foreground: var(--color-copper-bright);
+  --sidebar-border: var(--color-hairline);
+  --sidebar-ring: var(--color-copper);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "tnum" 1;
+  }
+  html {
+    @apply font-sans;
+    color-scheme: dark;
+  }
+}
+
+@layer utilities {
+  /* the one metallic flourish: a hairline top-edge catch-light on raised surfaces */
+  .edge-highlight {
+    box-shadow: inset 0 1px 0
+      color-mix(in srgb, var(--color-copper-bright) 12%, transparent);
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
