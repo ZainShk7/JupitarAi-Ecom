@@ -157,6 +157,7 @@ export function ProductDetail({ product }: { product: ProductRow }) {
           value={fields.name}
           onChange={(event) => setFields((prev) => ({ ...prev, name: event.target.value }))}
           onBlur={(event) => commit({ name: event.target.value.trim() || fields.name })}
+          aria-label="Product name"
           className="h-auto border-none bg-transparent px-0 font-display text-2xl font-semibold text-ink shadow-none focus-visible:ring-0"
         />
 
@@ -181,6 +182,8 @@ export function ProductDetail({ product }: { product: ProductRow }) {
               <Input
                 defaultValue={fields.category ?? ""}
                 onBlur={(event) => commit({ category: event.target.value.trim() || null })}
+                autoComplete="off"
+                aria-label="Category"
               />
             </FormField>
             <FormField label="AliExpress URL">
@@ -188,9 +191,16 @@ export function ProductDetail({ product }: { product: ProductRow }) {
                 <Input
                   defaultValue={fields.sourceUrl ?? ""}
                   onBlur={(event) => commit({ sourceUrl: event.target.value.trim() || null })}
+                  autoComplete="off"
+                  aria-label="AliExpress URL"
                 />
                 {fields.sourceUrl ? (
-                  <a href={fields.sourceUrl} target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={fields.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Open AliExpress listing in a new tab"
+                  >
                     <ExternalLink className="size-4 text-ink-dim hover:text-copper-bright" />
                   </a>
                 ) : null}
@@ -209,13 +219,14 @@ export function ProductDetail({ product }: { product: ProductRow }) {
                     const parsed = Number.parseFloat(event.target.value);
                     commit({ costPriceAmount: Number.isFinite(parsed) ? toPence(Math.max(parsed, 0)) : 0 });
                   }}
+                  aria-label="Cost price"
                   className="tabular"
                 />
                 <Select
                   value={fields.costPriceCurrency}
                   onValueChange={(value) => commit({ costPriceCurrency: value as CurrencyCode })}
                 >
-                  <SelectTrigger size="sm" className="w-20">
+                  <SelectTrigger size="sm" className="w-20" aria-label="Cost price currency">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -239,6 +250,7 @@ export function ProductDetail({ product }: { product: ProductRow }) {
                   const parsed = Number.parseInt(event.target.value, 10);
                   commit({ deliveryDays: Number.isFinite(parsed) ? Math.max(parsed, 0) : null });
                 }}
+                aria-label="Delivery days"
                 className="tabular"
               />
             </FormField>
@@ -254,6 +266,7 @@ export function ProductDetail({ product }: { product: ProductRow }) {
                   const parsed = Number.parseFloat(event.target.value);
                   commit({ targetPrice: Number.isFinite(parsed) ? toPence(Math.max(parsed, 0)) : 0 });
                 }}
+                aria-label="Target selling price"
                 className="tabular"
               />
             </FormField>
@@ -265,6 +278,7 @@ export function ProductDetail({ product }: { product: ProductRow }) {
                   const parsed = Number.parseInt(event.target.value, 10);
                   commit({ competitorSoldCount: Number.isFinite(parsed) ? Math.max(parsed, 0) : null });
                 }}
+                aria-label="Competitor sold count"
                 className="tabular"
               />
             </FormField>
@@ -273,7 +287,7 @@ export function ProductDetail({ product }: { product: ProductRow }) {
           <FieldGroup title="Decision & status">
             <FormField label="Status">
               <Select value={fields.status} onValueChange={(value) => commit({ status: value as ProductFields["status"] })}>
-                <SelectTrigger size="sm" className="w-full">
+                <SelectTrigger size="sm" className="w-full" aria-label="Status">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -290,6 +304,7 @@ export function ProductDetail({ product }: { product: ProductRow }) {
                 defaultValue={fields.notes ?? ""}
                 onBlur={(event) => commit({ notes: event.target.value.trim() || null })}
                 rows={3}
+                aria-label="Notes"
               />
             </FormField>
           </FieldGroup>
@@ -324,7 +339,7 @@ export function ProductDetail({ product }: { product: ProductRow }) {
               <span className="text-oxblood">■</span> Fees + VAT {formatGBP(metrics.fees + metrics.vatDue)}
             </span>
             <span>
-              <span className={metrics.profit >= 0 ? "text-good" : "text-bad"}>■</span> Profit{" "}
+              <span className={metrics.profit >= 0 ? "text-good" : "text-bad-text"}>■</span> Profit{" "}
               {formatGBP(metrics.profit)}
             </span>
             <span className="ml-auto">
@@ -343,6 +358,7 @@ export function ProductDetail({ product }: { product: ProductRow }) {
               type="number"
               value={marginTarget}
               onChange={(event) => setMarginTarget(event.target.value)}
+              aria-label="Target margin percent"
               className="tabular h-8 w-20"
             />
             <span>% margin, price at</span>

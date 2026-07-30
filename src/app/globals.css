@@ -22,11 +22,18 @@
 
   --color-ink: #f2ede9; /* warm off-white, never pure #fff */
   --color-ink-dim: #a69b94;
-  --color-ink-faint: #6e6560;
+  /* the original #6e6560 read at 2.7:1 on --color-surface, well under WCAG AA
+     (4.5:1) — lightened just enough to pass against base/surface/raised. */
+  --color-ink-faint: #9c9590;
 
   --color-good: #7fa65c; /* olive-leaning green */
   --color-warn: #d9a03c;
   --color-bad: #b4442e;
+  /* --color-bad as small text on our dark surfaces reads at ~2.8:1 — fails
+     WCAG AA (4.5:1). This lifts it toward --color-ink just enough to pass
+     against both --color-surface and --color-raised, without touching the
+     canonical --color-bad value used for fills. */
+  --color-bad-text: color-mix(in srgb, var(--color-bad) 55%, var(--color-ink) 45%);
 
   --font-display: var(--font-archivo);
   --font-sans: var(--font-inter);
@@ -132,6 +139,23 @@
     @apply font-sans;
     color-scheme: dark;
   }
+}
+
+/*
+  Chrome's autofill heuristics guess at fields like "Category" or a URL input
+  and force their own light-mode background + near-black text, ignoring our
+  CSS entirely — this reads as a near-invisible-text contrast bug. Override
+  the fill color back to our tokens on every autofilled input/textarea.
+*/
+input:-webkit-autofill,
+textarea:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-ink);
+  caret-color: var(--color-ink);
+  transition: background-color 0s 600000s, color 0s 600000s;
 }
 
 @layer utilities {

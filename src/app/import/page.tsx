@@ -9,10 +9,12 @@ export default async function ImportPage() {
   const { rows } = await getPipelineData();
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+    <>
       <AppHeader active="import" />
-      <ExportPanel rows={rows} />
-      <ImportWizard />
-    </div>
+      <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <ExportPanel rows={rows} />
+        <ImportWizard />
+      </main>
+    </>
   );
 }

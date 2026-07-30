@@ -8,9 +8,11 @@ export default async function Home() {
   const { rows, categories } = await getPipelineData();
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+    <>
       <AppHeader active="pipeline" />
-      <PipelineGrid rows={rows} categories={categories} />
-    </div>
+      <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <PipelineGrid rows={rows} categories={categories} />
+      </main>
+    </>
   );
 }

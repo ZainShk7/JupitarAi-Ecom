@@ -88,7 +88,7 @@ export function PipelineToolbar({
         value={filters.category || "all"}
         onValueChange={(value) => setFilters({ category: value === "all" ? "" : value })}
       >
-        <SelectTrigger size="sm" className="h-8 w-44">
+        <SelectTrigger size="sm" className="h-8 w-44" aria-label="Filter by category">
           <SelectValue placeholder="Category" />
         </SelectTrigger>
         <SelectContent>
@@ -111,6 +111,7 @@ export function PipelineToolbar({
           max={100}
           step={1}
           className="w-28"
+          thumbLabel="Minimum margin percent"
         />
         <span className="w-9 shrink-0 text-xs tabular text-ink-dim">{filters.minMargin}%</span>
       </div>
@@ -118,7 +119,7 @@ export function PipelineToolbar({
       <Button variant="default" size="sm" className="h-8" onClick={onCreate}>
         <Plus className="size-3.5" />
         New product
-        <span className="text-primary-foreground/60">(n)</span>
+        <span className="text-primary-foreground/95">(n)</span>
       </Button>
 
       <div className="ml-auto shrink-0 text-xs text-ink-faint">

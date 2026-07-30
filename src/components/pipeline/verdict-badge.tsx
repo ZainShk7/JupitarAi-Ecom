@@ -5,7 +5,7 @@ const VERDICT_META: Record<Verdict, { label: string; className: string }> = {
   strong: { label: "Strong", className: "text-good" },
   viable: { label: "Viable", className: "text-copper" },
   marginal: { label: "Marginal", className: "text-warn" },
-  kill: { label: "Kill", className: "text-oxblood" },
+  kill: { label: "Kill", className: "rounded-sm bg-oxblood px-1.5 py-0.5 text-ink" },
 };
 
 export function VerdictBadge({

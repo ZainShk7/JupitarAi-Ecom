@@ -79,7 +79,7 @@ function compareNullable(a: number | null, b: number | null): number {
 
 function marginTone(marginPercent: number | null, minMarginPercent: number): string {
   if (marginPercent == null) return "text-ink-faint";
-  if (marginPercent <= 0) return "text-bad";
+  if (marginPercent <= 0) return "text-bad-text";
   if (marginPercent < minMarginPercent) return "text-warn";
   return "text-good";
 }
@@ -885,7 +885,7 @@ export function PipelineGrid({
                   style={{ width: headerWidth(header) }}
                   className={cn(
                     "flex items-center border-r border-hairline/60 px-2 text-[11px] uppercase tracking-wide text-ink-dim",
-                    depth === 0 && "font-semibold text-ink-dim/80",
+                    depth === 0 && "font-semibold",
                     header.column.getCanSort() && "cursor-pointer select-none hover:text-ink",
                     header.column.id === "actions" && "sticky right-0 z-6 bg-surface",
                   )}

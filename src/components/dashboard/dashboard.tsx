@@ -7,6 +7,7 @@ import {
   CartesianGrid,
   Cell,
   ReferenceLine,
+  ResponsiveContainer,
   Scatter,
   ScatterChart,
   Tooltip,
@@ -177,7 +178,8 @@ export function Dashboard({ rows }: { rows: ProductRow[] }) {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <ChartCard title="Margin distribution">
-            <BarChart width={460} height={260} data={histogramData} barCategoryGap="20%">
+            <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={histogramData} barCategoryGap="20%">
               <CartesianGrid vertical={false} stroke="var(--color-hairline)" />
               <XAxis
                 dataKey="label"
@@ -211,14 +213,16 @@ export function Dashboard({ rows }: { rows: ProductRow[] }) {
                 ))}
               </Bar>
             </BarChart>
+            </ResponsiveContainer>
             <p className="mt-2 text-[11px] text-ink-faint">
-              <span className="text-bad">■</span> below your {settings.minMarginPercent}% bar ·{" "}
+              <span className="text-bad-text">■</span> below your {settings.minMarginPercent}% bar ·{" "}
               <span className="text-copper">■</span> clears it
             </p>
           </ChartCard>
 
           <ChartCard title="Cost vs. margin">
-            <ScatterChart width={460} height={260} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+            <ResponsiveContainer width="100%" height={260}>
+            <ScatterChart margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
               <CartesianGrid stroke="var(--color-hairline)" />
               <XAxis
                 type="number"
@@ -267,12 +271,14 @@ export function Dashboard({ rows }: { rows: ProductRow[] }) {
                 }
                 cursor={{ stroke: "var(--color-edge)" }}
               />
-              <Scatter data={scatterData} fill="var(--color-copper-bright)">
-                {scatterData.map((_, index) => (
-                  <Cell key={index} stroke="var(--color-surface)" strokeWidth={2} />
-                ))}
-              </Scatter>
+              <Scatter
+                data={scatterData}
+                fill="var(--color-copper-bright)"
+                stroke="var(--color-surface)"
+                strokeWidth={2}
+              />
             </ScatterChart>
+            </ResponsiveContainer>
             <p className="mt-2 text-[11px] text-ink-faint">
               Vertical line: median cost. Horizontal line: your {settings.minMarginPercent}% bar.
             </p>

@@ -109,7 +109,7 @@ export function ImportWizard() {
           {result.failed > 0 ? (
             <>
               {" "}
-              · <span className="text-bad">{result.failed}</span> failed
+              · <span className="text-bad-text">{result.failed}</span> failed
             </>
           ) : null}
         </p>
@@ -204,7 +204,11 @@ export function ImportWizard() {
                       })
                     }
                   >
-                    <SelectTrigger size="sm" className="w-56">
+                    <SelectTrigger
+                      size="sm"
+                      className="w-56"
+                      aria-label={`Map column "${header || `Column ${index + 1}`}" to field`}
+                    >
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -225,7 +229,7 @@ export function ImportWizard() {
           <div className="flex items-center gap-2 border-t border-hairline px-4 py-2.5">
             <span className="text-xs text-ink-dim">Cost price column is in</span>
             <Select value={costCurrency} onValueChange={(value) => setCostCurrency(value as CurrencyCode)}>
-              <SelectTrigger size="sm" className="w-24">
+              <SelectTrigger size="sm" className="w-24" aria-label="Cost price currency">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -245,7 +249,7 @@ export function ImportWizard() {
 
       <div className="mb-3 flex items-center gap-4 text-sm">
         <span className="text-good">{validRows.length} ready to import</span>
-        {errorRows.length > 0 ? <span className="text-bad">{errorRows.length} with errors</span> : null}
+        {errorRows.length > 0 ? <span className="text-bad-text">{errorRows.length} with errors</span> : null}
         <Button
           size="sm"
           className="ml-auto"
@@ -258,7 +262,7 @@ export function ImportWizard() {
 
       {errorRows.length > 0 ? (
         <div className="mb-4 rounded-lg border border-bad/40 bg-surface">
-          <div className="border-b border-hairline px-4 py-2 text-[11px] uppercase tracking-wide text-bad">
+          <div className="border-b border-hairline px-4 py-2 text-[11px] uppercase tracking-wide text-bad-text">
             Rows with errors — not imported
           </div>
           <Table>
@@ -276,7 +280,7 @@ export function ImportWizard() {
                   <TableCell className="max-w-64 truncate text-ink-dim">
                     {row.raw[mapping.indexOf("name")] || "—"}
                   </TableCell>
-                  <TableCell className="text-bad">{row.errors.join("; ")}</TableCell>
+                  <TableCell className="text-bad-text">{row.errors.join("; ")}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

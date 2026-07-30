@@ -15,9 +15,11 @@ export default async function ProductDetailPage({
   if (!product) notFound();
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+    <>
       <AppHeader active="pipeline" />
-      <ProductDetail product={product} />
-    </div>
+      <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <ProductDetail product={product} />
+      </main>
+    </>
   );
 }
