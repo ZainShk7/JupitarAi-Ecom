@@ -31,10 +31,13 @@
   --font-display: var(--font-archivo);
   --font-sans: var(--font-inter);
 
+  /* shadcn primitives use rounded-lg for controls (buttons/inputs/selects)
+     and rounded-xl for card-like surfaces (dialog/command) — these two
+     values are what carry our "6px controls, 10px cards" rule into them. */
   --radius-sm: 4px;
   --radius-md: 6px;
-  --radius-lg: 10px;
-  --radius-xl: 14px;
+  --radius-lg: 6px;
+  --radius-xl: 10px;
 }
 
 @custom-variant dark (&:is(.dark *));
@@ -106,7 +109,7 @@
   --chart-3: var(--color-mahogany);
   --chart-4: var(--color-good);
   --chart-5: var(--color-warn);
-  --radius: 10px;
+  --radius: 6px;
   --sidebar: var(--color-surface);
   --sidebar-foreground: var(--color-ink);
   --sidebar-primary: var(--color-copper);

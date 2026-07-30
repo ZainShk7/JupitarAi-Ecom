@@ -1,16 +1,10 @@
-import { integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, jsonb, pgTable, real, text, timestamp } from "drizzle-orm/pg-core";
 import { CURRENCIES, type CurrencyCode } from "@/lib/money";
+import { PRODUCT_STATUSES, type ProductStatus } from "@/lib/product-status";
 
-export const PRODUCT_STATUSES = [
-  "researching",
-  "shortlisted",
-  "listed",
-  "winner",
-  "rejected",
-] as const;
-export type ProductStatus = (typeof PRODUCT_STATUSES)[number];
+export { PRODUCT_STATUSES, type ProductStatus };
 
-export const products = sqliteTable("products", {
+export const products = pgTable("products", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   category: text("category"),
@@ -26,8 +20,8 @@ export const products = sqliteTable("products", {
   competitorSoldCount: integer("competitor_sold_count"),
   status: text("status", { enum: PRODUCT_STATUSES }).notNull().default("researching"),
   notes: text("notes"),
-  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export type Product = typeof products.$inferSelect;
@@ -35,7 +29,7 @@ export type NewProduct = typeof products.$inferInsert;
 
 // Single-row table — always read/written at id "default". Every calculation
 // in lib/metrics.ts takes this row as an input; nothing here is derived.
-export const settings = sqliteTable("settings", {
+export const settings = pgTable("settings", {
   id: text("id").primaryKey(),
   ebayFeePercent: real("ebay_fee_percent").notNull().default(12.8),
   ebayFeeFixedPence: integer("ebay_fee_fixed_pence").notNull().default(30),
@@ -44,9 +38,7 @@ export const settings = sqliteTable("settings", {
   minMarginPercent: real("min_margin_percent").notNull().default(20),
   maxDeliveryDays: integer("max_delivery_days").notNull().default(20),
   vatPercent: real("vat_percent").notNull().default(0), // manual field, never fetched
-  fxRates: text("fx_rates", { mode: "json" })
-    .notNull()
-    .$type<Record<CurrencyCode, number>>(),
+  fxRates: jsonb("fx_rates").notNull().$type<Record<CurrencyCode, number>>(),
 });
 
 export type Settings = typeof settings.$inferSelect;

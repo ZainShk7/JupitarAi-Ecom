@@ -1,15 +1,16 @@
-import { createClient } from "@libsql/client";
-import { drizzle } from "drizzle-orm/libsql";
+import { config } from "dotenv";
+import { neon } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-http";
 import * as schema from "./schema";
 
-// Same driver for local dev and Turso prod — only DATABASE_URL changes.
-// Local default is a file under ./data, so it never collides with a
-// checked-in path and is gitignored.
-const url = process.env.DATABASE_URL ?? "file:./data/jupitar.db";
+// next dev/build/start already load .env.local; this is a no-op there
+// (dotenv never overwrites an existing var) and the only thing standalone
+// scripts (tsx scripts/seed.ts) need to pick up DATABASE_URL.
+config({ path: ".env.local" });
 
-const client = createClient({
-  url,
-  authToken: process.env.DATABASE_AUTH_TOKEN,
-});
+// Neon Postgres. Swapping to a different branch/project is just a
+// DATABASE_URL change (e.g. a Neon preview branch per environment) — no
+// code change required.
+const sql = neon(process.env.DATABASE_URL!);
 
-export const db = drizzle(client, { schema });
+export const db = drizzle(sql, { schema });

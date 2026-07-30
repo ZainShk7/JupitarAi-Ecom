@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Archivo, Inter } from "next/font/google";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
@@ -31,11 +32,13 @@ export default function RootLayout({
       lang="en"
       className={`dark ${archivo.variable} ${inter.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground">
-        <TooltipProvider delayDuration={200}>
-          {children}
-          <Toaster />
-        </TooltipProvider>
+      <body className="h-full flex flex-col overflow-hidden bg-background text-foreground">
+        <NuqsAdapter>
+          <TooltipProvider delayDuration={200}>
+            {children}
+            <Toaster />
+          </TooltipProvider>
+        </NuqsAdapter>
       </body>
     </html>
   );
