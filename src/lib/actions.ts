@@ -4,13 +4,14 @@ import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
-import { products, type NewProduct } from "@/db/schema";
+import { products, settings as settingsTable, SETTINGS_ROW_ID, type NewProduct } from "@/db/schema";
 import {
   NEW_PRODUCT_DEFAULTS,
   productFieldsPatchSchema,
   productFieldsSchema,
   type ProductFields,
 } from "@/lib/product-schema";
+import { settingsFieldsPatchSchema, type SettingsFieldsPatch } from "@/lib/settings-schema";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 export type ActionResultWithData<T> = { ok: true; data: T } | { ok: false; error: string };
@@ -118,6 +119,25 @@ export async function importProducts(
     }
     revalidatePath("/");
     return { ok: true, data: { imported, failed } };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+export async function updateSettings(patch: SettingsFieldsPatch): Promise<ActionResult> {
+  try {
+    const parsed = settingsFieldsPatchSchema.safeParse(patch);
+    if (!parsed.success) {
+      return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+    }
+    if (Object.keys(parsed.data).length === 0) return { ok: true };
+    await db
+      .update(settingsTable)
+      .set(parsed.data)
+      .where(eq(settingsTable.id, SETTINGS_ROW_ID));
+    revalidatePath("/");
+    revalidatePath("/dashboard");
+    return { ok: true };
   } catch (error) {
     return fail(error);
   }

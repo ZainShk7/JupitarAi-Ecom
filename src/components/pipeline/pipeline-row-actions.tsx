@@ -1,6 +1,7 @@
 "use client";
 
-import { Copy, Trash2 } from "lucide-react";
+import { Copy, SquareArrowOutUpRight, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import type { ProductRow } from "@/lib/products";
 
@@ -15,6 +16,11 @@ export function RowActions({
 }) {
   return (
     <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+      <Button variant="ghost" size="icon-sm" aria-label="Open product detail" asChild>
+        <Link href={`/p/${row.id}`}>
+          <SquareArrowOutUpRight className="size-3.5" />
+        </Link>
+      </Button>
       <Button
         variant="ghost"
         size="icon-sm"

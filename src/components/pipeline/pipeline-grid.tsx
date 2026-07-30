@@ -28,12 +28,13 @@ import {
   restoreProduct,
   updateProduct,
 } from "@/lib/actions";
-import { computeMetrics, type SettingsInput } from "@/lib/metrics";
+import { computeMetrics } from "@/lib/metrics";
 import { CURRENCIES, formatGBP, formatPercent, fromPence, toPence } from "@/lib/money";
 import { NEW_PRODUCT_DEFAULTS, type ProductFields } from "@/lib/product-schema";
 import { PRODUCT_STATUSES, type ProductStatus } from "@/lib/product-status";
 import type { ProductRow } from "@/lib/products";
 import { cn } from "@/lib/utils";
+import { useSettings } from "@/components/settings/settings-provider";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { EditableInput, EditableSelect, type MoveDirection } from "./editable-cell";
@@ -128,12 +129,11 @@ interface EditingCell {
 export function PipelineGrid({
   rows,
   categories,
-  settings,
 }: {
   rows: ProductRow[];
   categories: string[];
-  settings: SettingsInput;
 }) {
+  const { settings } = useSettings();
   const minMarginPercent = settings.minMarginPercent;
   const [filters, setFilters] = useQueryStates(filterParsers);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -183,12 +183,13 @@ export function PipelineGrid({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Recomputed for every row on every settings or live-edit change — cheap
+  // pure math, and it's the only way a settings change (from the drawer)
+  // reaches every verdict immediately without a page reload.
   const effectiveRows = useMemo(() => {
-    if (Object.keys(liveEdits).length === 0) return committedRows;
     return committedRows.map((row) => {
       const patch = liveEdits[row.id];
-      if (!patch) return row;
-      const merged = { ...row, ...patch };
+      const merged = patch ? { ...row, ...patch } : row;
       return { ...merged, metrics: computeMetrics(merged, settings) };
     });
   }, [committedRows, liveEdits, settings]);

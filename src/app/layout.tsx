@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Archivo, Inter } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { SettingsProvider } from "@/components/settings/settings-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { getSettings } from "@/lib/settings";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -22,11 +24,13 @@ export const metadata: Metadata = {
   description: "Product research and pipeline tool for eBay dropshipping.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const settings = await getSettings();
+
   return (
     <html
       lang="en"
@@ -35,8 +39,10 @@ export default function RootLayout({
       <body className="h-full flex flex-col overflow-hidden bg-background text-foreground">
         <NuqsAdapter>
           <TooltipProvider delayDuration={200}>
-            {children}
-            <Toaster />
+            <SettingsProvider initialSettings={settings}>
+              {children}
+              <Toaster />
+            </SettingsProvider>
           </TooltipProvider>
         </NuqsAdapter>
       </body>
