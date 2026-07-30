@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import {
   createColumnHelper,
   flexRender,
@@ -33,6 +34,7 @@ import { NEW_PRODUCT_DEFAULTS, type ProductFields } from "@/lib/product-schema";
 import { PRODUCT_STATUSES, type ProductStatus } from "@/lib/product-status";
 import type { ProductRow } from "@/lib/products";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { EditableInput, EditableSelect, type MoveDirection } from "./editable-cell";
 import { PipelineToolbar } from "./pipeline-toolbar";
@@ -922,9 +924,22 @@ export function PipelineGrid({
                 </div>
               );
             })}
-            {tableRows.length === 0 ? (
+            {tableRows.length === 0 && effectiveRows.length > 0 ? (
               <div className="flex h-40 items-center justify-center text-sm text-ink-faint">
                 No products match these filters.
+              </div>
+            ) : null}
+            {effectiveRows.length === 0 ? (
+              <div className="flex h-64 flex-col items-center justify-center gap-3">
+                <p className="text-sm text-ink-faint">No products yet.</p>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href="/import">Import your spreadsheet</Link>
+                  </Button>
+                  <Button size="sm" onClick={() => void handleCreate()}>
+                    Add first product
+                  </Button>
+                </div>
               </div>
             ) : null}
           </div>

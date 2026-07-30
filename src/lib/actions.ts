@@ -8,6 +8,7 @@ import { products, type NewProduct } from "@/db/schema";
 import {
   NEW_PRODUCT_DEFAULTS,
   productFieldsPatchSchema,
+  productFieldsSchema,
   type ProductFields,
 } from "@/lib/product-schema";
 
@@ -84,6 +85,39 @@ export async function restoreProduct(product: NewProduct): Promise<ActionResult>
     await db.insert(products).values(product);
     revalidatePath("/");
     return { ok: true };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+/**
+ * Imports rows one at a time — each row is validated and inserted
+ * independently, so one bad row never blocks the rest (all-or-nothing is
+ * per row, not per file). The client already validates with the same
+ * schema for the preview; this re-validates because client input is never
+ * trusted.
+ */
+export async function importProducts(
+  rows: unknown[],
+): Promise<ActionResultWithData<{ imported: number; failed: number }>> {
+  try {
+    let imported = 0;
+    let failed = 0;
+    for (const row of rows) {
+      const parsed = productFieldsSchema.safeParse(row);
+      if (!parsed.success) {
+        failed++;
+        continue;
+      }
+      try {
+        await db.insert(products).values({ id: nanoid(), ...parsed.data });
+        imported++;
+      } catch {
+        failed++;
+      }
+    }
+    revalidatePath("/");
+    return { ok: true, data: { imported, failed } };
   } catch (error) {
     return fail(error);
   }
