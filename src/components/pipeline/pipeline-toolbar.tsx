@@ -1,7 +1,7 @@
 "use client";
 
 import type { RefObject } from "react";
-import { Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -35,6 +35,7 @@ export function PipelineToolbar({
   searchInputRef,
   shownCount,
   totalCount,
+  onCreate,
 }: {
   categories: string[];
   filters: PipelineFilters;
@@ -42,6 +43,7 @@ export function PipelineToolbar({
   searchInputRef: RefObject<HTMLInputElement | null>;
   shownCount: number;
   totalCount: number;
+  onCreate: () => void;
 }) {
   return (
     <div className="flex flex-wrap items-center gap-3 border-b border-hairline bg-surface px-4 py-3">
@@ -112,6 +114,12 @@ export function PipelineToolbar({
         />
         <span className="w-9 shrink-0 text-xs tabular text-ink-dim">{filters.minMargin}%</span>
       </div>
+
+      <Button variant="default" size="sm" className="h-8" onClick={onCreate}>
+        <Plus className="size-3.5" />
+        New product
+        <span className="text-primary-foreground/60">(n)</span>
+      </Button>
 
       <div className="ml-auto shrink-0 text-xs text-ink-faint">
         Showing {shownCount.toLocaleString()} of {totalCount.toLocaleString()}

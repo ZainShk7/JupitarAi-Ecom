@@ -13,7 +13,7 @@ export default async function Home() {
           JUPITAR ECOM
         </span>
       </header>
-      <PipelineGrid rows={rows} categories={categories} minMarginPercent={settings.minMarginPercent} />
+      <PipelineGrid rows={rows} categories={categories} settings={settings} />
     </div>
   );
 }
