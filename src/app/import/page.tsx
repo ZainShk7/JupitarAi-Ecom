@@ -1,12 +1,12 @@
 import { AppHeader } from "@/components/app-header";
 import { ExportPanel } from "@/components/import/export-panel";
 import { ImportWizard } from "@/components/import/import-wizard";
-import { getPipelineData } from "@/lib/products";
+import { getDashboardRows } from "@/lib/products";
 
 export const dynamic = "force-dynamic";
 
 export default async function ImportPage() {
-  const { rows } = await getPipelineData();
+  const rows = await getDashboardRows();
 
   return (
     <>

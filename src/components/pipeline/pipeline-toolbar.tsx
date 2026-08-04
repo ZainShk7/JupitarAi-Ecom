@@ -1,7 +1,7 @@
 "use client";
 
 import type { RefObject } from "react";
-import { Plus, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -35,6 +35,9 @@ export function PipelineToolbar({
   searchInputRef,
   shownCount,
   totalCount,
+  page,
+  totalPages,
+  onPageChange,
   onCreate,
 }: {
   categories: string[];
@@ -43,6 +46,9 @@ export function PipelineToolbar({
   searchInputRef: RefObject<HTMLInputElement | null>;
   shownCount: number;
   totalCount: number;
+  page: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
   onCreate: () => void;
 }) {
   return (
@@ -122,8 +128,35 @@ export function PipelineToolbar({
         <span className="text-primary-foreground/95">(n)</span>
       </Button>
 
-      <div className="ml-auto shrink-0 text-xs text-ink-faint">
-        Showing {shownCount.toLocaleString()} of {totalCount.toLocaleString()}
+      <div className="ml-auto flex shrink-0 items-center gap-3 text-xs text-ink-faint">
+        <span>
+          Showing {shownCount.toLocaleString()} of {totalCount.toLocaleString()}
+        </span>
+        {totalPages > 1 ? (
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="icon-sm"
+              disabled={page <= 1}
+              onClick={() => onPageChange(page - 1)}
+              aria-label="Previous page"
+            >
+              <ChevronLeft />
+            </Button>
+            <span className="w-16 text-center tabular">
+              Page {page} / {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="icon-sm"
+              disabled={page >= totalPages}
+              onClick={() => onPageChange(page + 1)}
+              aria-label="Next page"
+            >
+              <ChevronRight />
+            </Button>
+          </div>
+        ) : null}
       </div>
     </div>
   );

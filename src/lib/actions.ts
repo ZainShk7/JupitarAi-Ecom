@@ -11,6 +11,7 @@ import {
   productFieldsSchema,
   type ProductFields,
 } from "@/lib/product-schema";
+import { cacheDeleteProduct, cacheInsertProduct, cacheUpdateProduct } from "@/lib/products";
 import { settingsFieldsPatchSchema, type SettingsFieldsPatch } from "@/lib/settings-schema";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -23,7 +24,8 @@ function fail(error: unknown): { ok: false; error: string } {
 export async function createProduct(): Promise<ActionResultWithData<{ id: string }>> {
   try {
     const id = nanoid();
-    await db.insert(products).values({ id, ...NEW_PRODUCT_DEFAULTS });
+    const [row] = await db.insert(products).values({ id, ...NEW_PRODUCT_DEFAULTS }).returning();
+    cacheInsertProduct(row);
     revalidatePath("/");
     return { ok: true, data: { id } };
   } catch (error) {
@@ -41,10 +43,12 @@ export async function updateProduct(
       return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
     }
     if (Object.keys(parsed.data).length === 0) return { ok: true };
-    await db
+    const [row] = await db
       .update(products)
       .set({ ...parsed.data, updatedAt: new Date() })
-      .where(eq(products.id, id));
+      .where(eq(products.id, id))
+      .returning();
+    if (row) cacheUpdateProduct(row);
     revalidatePath("/");
     return { ok: true };
   } catch (error) {
@@ -58,11 +62,15 @@ export async function duplicateProduct(id: string): Promise<ActionResultWithData
     if (!source) return { ok: false, error: "Product not found" };
     const newId = nanoid();
     const { id: _oldId, createdAt: _createdAt, updatedAt: _updatedAt, ...fields } = source;
-    await db.insert(products).values({
-      ...fields,
-      id: newId,
-      name: `${source.name} (copy)`,
-    });
+    const [row] = await db
+      .insert(products)
+      .values({
+        ...fields,
+        id: newId,
+        name: `${source.name} (copy)`,
+      })
+      .returning();
+    cacheInsertProduct(row);
     revalidatePath("/");
     return { ok: true, data: { id: newId } };
   } catch (error) {
@@ -73,6 +81,7 @@ export async function duplicateProduct(id: string): Promise<ActionResultWithData
 export async function deleteProduct(id: string): Promise<ActionResult> {
   try {
     await db.delete(products).where(eq(products.id, id));
+    cacheDeleteProduct(id);
     revalidatePath("/");
     return { ok: true };
   } catch (error) {
@@ -83,7 +92,8 @@ export async function deleteProduct(id: string): Promise<ActionResult> {
 /** Re-inserts a product exactly as it was, for undoing a delete. */
 export async function restoreProduct(product: NewProduct): Promise<ActionResult> {
   try {
-    await db.insert(products).values(product);
+    const [row] = await db.insert(products).values(product).returning();
+    cacheInsertProduct(row);
     revalidatePath("/");
     return { ok: true };
   } catch (error) {
@@ -111,7 +121,8 @@ export async function importProducts(
         continue;
       }
       try {
-        await db.insert(products).values({ id: nanoid(), ...parsed.data });
+        const [row] = await db.insert(products).values({ id: nanoid(), ...parsed.data }).returning();
+        cacheInsertProduct(row);
         imported++;
       } catch {
         failed++;
