@@ -3,6 +3,7 @@ import { CURRENCIES, type CurrencyCode } from "@/lib/money";
 import { PRODUCT_STATUSES, type ProductStatus } from "@/lib/product-status";
 
 export { PRODUCT_STATUSES, type ProductStatus };
+export * from "./auth-schema";
 
 export const products = pgTable("products", {
   id: text("id").primaryKey(),

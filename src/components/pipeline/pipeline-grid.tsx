@@ -6,20 +6,13 @@ import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
-  getSortedRowModel,
   type Header,
   type SortingState,
   useReactTable,
 } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { ArrowDown, ArrowUp, ArrowUpDown, ExternalLink } from "lucide-react";
-import {
-  parseAsArrayOf,
-  parseAsFloat,
-  parseAsString,
-  parseAsStringEnum,
-  useQueryStates,
-} from "nuqs";
+import { useQueryStates } from "nuqs";
 import { toast } from "sonner";
 import {
   createProduct,
@@ -30,9 +23,10 @@ import {
 } from "@/lib/actions";
 import { computeMetrics } from "@/lib/metrics";
 import { CURRENCIES, formatGBP, formatPercent, fromPence, toPence } from "@/lib/money";
+import { filterParsers } from "@/lib/pipeline-query";
 import { NEW_PRODUCT_DEFAULTS, type ProductFields } from "@/lib/product-schema";
-import { PRODUCT_STATUSES, type ProductStatus } from "@/lib/product-status";
-import type { ProductRow } from "@/lib/products";
+import { PRODUCT_STATUSES } from "@/lib/product-status";
+import type { PipelinePage, ProductRow } from "@/lib/products";
 import { cn } from "@/lib/utils";
 import { useSettings } from "@/components/settings/settings-provider";
 import { Button } from "@/components/ui/button";
@@ -60,22 +54,6 @@ const EDITABLE_COLUMN_ORDER = [
   "status",
   "notes",
 ] as const;
-
-const filterParsers = {
-  q: parseAsString.withDefault(""),
-  status: parseAsArrayOf(parseAsStringEnum<ProductStatus>([...PRODUCT_STATUSES])).withDefault([]),
-  category: parseAsString.withDefault(""),
-  minMargin: parseAsFloat.withDefault(0),
-  sort: parseAsString.withDefault(""),
-  dir: parseAsStringEnum(["asc", "desc"]).withDefault("desc"),
-};
-
-function compareNullable(a: number | null, b: number | null): number {
-  if (a == null && b == null) return 0;
-  if (a == null) return 1; // nulls sort last regardless of direction
-  if (b == null) return -1;
-  return a - b;
-}
 
 function marginTone(marginPercent: number | null, minMarginPercent: number): string {
   if (marginPercent == null) return "text-ink-faint";
@@ -126,18 +104,22 @@ interface EditingCell {
   columnId: string;
 }
 
-export function PipelineGrid({
-  rows,
-  categories,
-}: {
-  rows: ProductRow[];
-  categories: string[];
-}) {
+export function PipelineGrid({ data }: { data: PipelinePage }) {
+  const { rows, categories } = data;
   const { settings } = useSettings();
   const minMarginPercent = settings.minMarginPercent;
-  const [filters, setFilters] = useQueryStates(filterParsers);
+  // shallow: false — filtering/sorting/paging is now server-side (see
+  // lib/products.ts), so every change here must trigger a real Next.js
+  // navigation, not just a URL update, or the server never re-runs.
+  const [filters, setFilters] = useQueryStates(filterParsers, { shallow: false });
   const searchInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Filter/sort/search changes should always land back on page 1; a direct
+  // page change (the only caller that passes `page` itself) skips the reset.
+  function updateFilters(partial: Partial<typeof filters>) {
+    void setFilters("page" in partial ? partial : { ...partial, page: 1 });
+  }
 
   const [committedRows, setCommittedRows] = useState(rows);
   useEffect(() => setCommittedRows(rows), [rows]);
@@ -151,6 +133,7 @@ export function PipelineGrid({
   const saveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const pendingPatches = useRef<Record<string, Partial<ProductFields>>>({});
   const pendingSnapshots = useRef<Record<string, ProductRow>>({});
+  const latestRowById = useRef<Record<string, ProductRow>>({});
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -194,31 +177,45 @@ export function PipelineGrid({
     });
   }, [committedRows, liveEdits, settings]);
 
-  const stats = useMemo(() => {
-    const shortlisted = effectiveRows.filter((row) => row.status === "shortlisted").length;
-    const clearingBar = effectiveRows.filter(
-      (row) => row.metrics.marginPercent != null && row.metrics.marginPercent >= minMarginPercent,
-    ).length;
-    return { total: effectiveRows.length, shortlisted, clearingBar };
-  }, [effectiveRows, minMarginPercent]);
+  // Search/filter/sort/pagination all run server-side now (see
+  // lib/products.ts), so these totals start from the server response instead
+  // of a client scan over every row — but create/duplicate/delete/edit still
+  // need to feel instant, so they nudge this local baseline by exactly the
+  // delta they cause (see applyStatDelta) rather than waiting for the next
+  // navigation to resync it.
+  const [stats, setStats] = useState({
+    total: data.grandTotal,
+    shortlisted: data.shortlisted,
+    clearingBar: data.clearingBar,
+  });
+  const hasActiveFilters = Boolean(
+    filters.q || filters.status.length > 0 || filters.category || filters.minMargin > 0,
+  );
+  useEffect(() => {
+    setStats({ total: data.grandTotal, shortlisted: data.shortlisted, clearingBar: data.clearingBar });
+  }, [data.grandTotal, data.shortlisted, data.clearingBar]);
 
-  const filteredRows = useMemo(() => {
-    const q = filters.q.trim().toLowerCase();
-    return effectiveRows.filter((row) => {
-      if (filters.status.length > 0 && !filters.status.includes(row.status)) return false;
-      if (filters.category && row.category !== filters.category) return false;
-      if (filters.minMargin > 0) {
-        if (row.metrics.marginPercent == null || row.metrics.marginPercent < filters.minMargin) {
-          return false;
-        }
-      }
-      if (q) {
-        const haystack = `${row.name} ${row.category ?? ""} ${row.notes ?? ""}`.toLowerCase();
-        if (!haystack.includes(q)) return false;
-      }
-      return true;
-    });
-  }, [effectiveRows, filters.q, filters.status, filters.category, filters.minMargin]);
+  function statContribution(row: Pick<ProductRow, "status" | "metrics">) {
+    return {
+      shortlisted: row.status === "shortlisted" ? 1 : 0,
+      clearingBar:
+        row.metrics.marginPercent != null && row.metrics.marginPercent >= minMarginPercent ? 1 : 0,
+    };
+  }
+
+  function applyStatDelta(before: ProductRow | null, after: ProductRow | null) {
+    const b = before ? statContribution(before) : { shortlisted: 0, clearingBar: 0 };
+    const a = after ? statContribution(after) : { shortlisted: 0, clearingBar: 0 };
+    const totalDelta = (after ? 1 : 0) - (before ? 1 : 0);
+    const shortlistedDelta = a.shortlisted - b.shortlisted;
+    const clearingBarDelta = a.clearingBar - b.clearingBar;
+    if (!totalDelta && !shortlistedDelta && !clearingBarDelta) return;
+    setStats((s) => ({
+      total: s.total + totalDelta,
+      shortlisted: s.shortlisted + shortlistedDelta,
+      clearingBar: s.clearingBar + clearingBarDelta,
+    }));
+  }
 
   function clearLiveEdit(rowId: string) {
     setLiveEdits((prev) => {
@@ -229,17 +226,17 @@ export function PipelineGrid({
   }
 
   function commitField(rowId: string, patch: Partial<ProductFields>) {
-    setCommittedRows((prev) => {
-      const index = prev.findIndex((row) => row.id === rowId);
-      if (index === -1) return prev;
-      if (!pendingSnapshots.current[rowId]) {
-        pendingSnapshots.current[rowId] = prev[index];
-      }
-      const merged = { ...prev[index], ...patch };
-      const next = [...prev];
-      next[index] = { ...merged, metrics: computeMetrics(merged, settings) };
-      return next;
-    });
+    const current = latestRowById.current[rowId] ?? committedRows.find((row) => row.id === rowId);
+    if (!current) return;
+    if (!pendingSnapshots.current[rowId]) {
+      pendingSnapshots.current[rowId] = current;
+    }
+    const merged = { ...current, ...patch };
+    const updated: ProductRow = { ...merged, metrics: computeMetrics(merged, settings) };
+    applyStatDelta(current, updated);
+    latestRowById.current[rowId] = updated;
+
+    setCommittedRows((prev) => prev.map((row) => (row.id === rowId ? updated : row)));
     clearLiveEdit(rowId);
 
     pendingPatches.current[rowId] = { ...pendingPatches.current[rowId], ...patch };
@@ -259,8 +256,13 @@ export function PipelineGrid({
     if (!result.ok) {
       toast.error(`Couldn't save changes: ${result.error}`);
       if (snapshot) {
+        const priorRow = latestRowById.current[rowId] ?? null;
+        applyStatDelta(priorRow, snapshot);
+        latestRowById.current[rowId] = snapshot;
         setCommittedRows((prev) => prev.map((row) => (row.id === rowId ? snapshot : row)));
       }
+    } else {
+      delete latestRowById.current[rowId];
     }
   }
 
@@ -283,17 +285,18 @@ export function PipelineGrid({
     [filters.sort, filters.dir],
   );
 
+  // Rows already arrive filtered, sorted, and paginated from the server —
+  // this table only owns column defs, header rendering, and virtualization.
   const table = useReactTable({
-    data: filteredRows,
+    data: effectiveRows,
     columns,
     state: { sorting },
     onSortingChange: (updater) => {
       const next = typeof updater === "function" ? updater(sorting) : updater;
       const first = next[0];
-      void setFilters({ sort: first?.id ?? "", dir: first?.desc ? "desc" : "asc" });
+      updateFilters({ sort: first?.id ?? "", dir: first?.desc ? "desc" : "asc" });
     },
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
   });
 
   const tableRows = table.getRowModel().rows;
@@ -351,8 +354,9 @@ export function PipelineGrid({
       ...NEW_PRODUCT_DEFAULTS,
       metrics: computeMetrics(NEW_PRODUCT_DEFAULTS, settings),
     };
+    applyStatDelta(null, newRow);
     setCommittedRows((prev) => [newRow, ...prev]);
-    void setFilters({ q: "", status: [], category: "", minMargin: 0, sort: "", dir: "desc" });
+    void setFilters({ q: "", status: [], category: "", minMargin: 0, sort: "", dir: "desc", page: 1 });
     requestAnimationFrame(() => {
       virtualizer.scrollToIndex(0, { align: "start" });
       setEditingCell({ rowId: newRow.id, columnId: "name" });
@@ -384,15 +388,18 @@ export function PipelineGrid({
       ...fields,
       metrics: computeMetrics(fields, settings),
     };
+    applyStatDelta(null, newRow);
     setCommittedRows((prev) => [newRow, ...prev]);
     toast.success("Product duplicated");
   }
 
   async function handleDelete(row: ProductRow) {
+    applyStatDelta(row, null);
     setCommittedRows((prev) => prev.filter((r) => r.id !== row.id));
     const result = await deleteProduct(row.id);
     if (!result.ok) {
       toast.error(`Couldn't delete: ${result.error}`);
+      applyStatDelta(null, row);
       setCommittedRows((prev) => [row, ...prev]);
       return;
     }
@@ -400,6 +407,7 @@ export function PipelineGrid({
       action: {
         label: "Undo",
         onClick: () => {
+          applyStatDelta(null, row);
           setCommittedRows((prev) => [row, ...prev]);
           void restoreProduct({
             id: row.id,
@@ -416,6 +424,7 @@ export function PipelineGrid({
           }).then((restoreResult) => {
             if (!restoreResult.ok) {
               toast.error("Couldn't restore product");
+              applyStatDelta(row, null);
               setCommittedRows((prev) => prev.filter((r) => r.id !== row.id));
             }
           });
@@ -683,8 +692,6 @@ export function PipelineGrid({
           columnHelper.accessor("competitorSoldCount", {
             header: "Sold",
             size: 80,
-            sortingFn: (rowA, rowB) =>
-              compareNullable(rowA.original.competitorSoldCount, rowB.original.competitorSoldCount),
             cell: (info) => {
               const row = info.row.original;
               if (isEditing(row.id, "competitorSoldCount")) {
@@ -731,8 +738,6 @@ export function PipelineGrid({
             id: "marginPercent",
             header: "Margin",
             size: 90,
-            sortingFn: (rowA, rowB) =>
-              compareNullable(rowA.original.metrics.marginPercent, rowB.original.metrics.marginPercent),
             cell: (info) => (
               <NumericCell className={marginTone(info.getValue(), minMarginPercent)}>
                 {formatPercent(info.getValue())}
@@ -743,8 +748,6 @@ export function PipelineGrid({
             id: "roiPercent",
             header: "ROI",
             size: 84,
-            sortingFn: (rowA, rowB) =>
-              compareNullable(rowA.original.metrics.roiPercent, rowB.original.metrics.roiPercent),
             cell: (info) => <NumericCell>{formatPercent(info.getValue())}</NumericCell>,
           }),
         ],
@@ -862,10 +865,13 @@ export function PipelineGrid({
       <PipelineToolbar
         categories={categories}
         filters={filters}
-        setFilters={(partial) => void setFilters(partial)}
+        setFilters={updateFilters}
         searchInputRef={searchInputRef}
-        shownCount={filteredRows.length}
-        totalCount={effectiveRows.length}
+        shownCount={hasActiveFilters ? data.filteredCount : stats.total}
+        totalCount={stats.total}
+        page={data.page}
+        totalPages={data.totalPages}
+        onPageChange={(page) => void setFilters({ page })}
         onCreate={() => void handleCreate()}
       />
       <div ref={scrollRef} className="relative min-h-0 flex-1 overflow-auto">
@@ -925,12 +931,12 @@ export function PipelineGrid({
                 </div>
               );
             })}
-            {tableRows.length === 0 && effectiveRows.length > 0 ? (
+            {tableRows.length === 0 && data.grandTotal > 0 ? (
               <div className="flex h-40 items-center justify-center text-sm text-ink-faint">
                 No products match these filters.
               </div>
             ) : null}
-            {effectiveRows.length === 0 ? (
+            {data.grandTotal === 0 ? (
               <div className="flex h-64 flex-col items-center justify-center gap-3">
                 <p className="text-sm text-ink-faint">No products yet.</p>
                 <div className="flex gap-2">

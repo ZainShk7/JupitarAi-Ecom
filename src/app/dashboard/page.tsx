@@ -1,11 +1,11 @@
 import { AppHeader } from "@/components/app-header";
 import { Dashboard } from "@/components/dashboard/dashboard";
-import { getPipelineData } from "@/lib/products";
+import { getDashboardRows } from "@/lib/products";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const { rows } = await getPipelineData();
+  const rows = await getDashboardRows();
 
   return (
     <>

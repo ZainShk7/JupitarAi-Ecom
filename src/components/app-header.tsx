@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SettingsDrawer } from "@/components/settings/settings-drawer";
+import { UserMenu } from "@/components/user-menu";
 import { cn } from "@/lib/utils";
 
 export function AppHeader({ active }: { active: "pipeline" | "import" | "dashboard" }) {
@@ -37,7 +38,8 @@ export function AppHeader({ active }: { active: "pipeline" | "import" | "dashboa
           Import
         </Link>
       </nav>
-      <div className="ml-auto">
+      <div className="ml-auto flex items-center gap-2">
+        <UserMenu />
         <SettingsDrawer />
       </div>
     </header>
