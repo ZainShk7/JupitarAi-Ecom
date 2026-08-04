@@ -168,6 +168,51 @@ textarea:-webkit-autofill:focus {
   .tabular {
     font-variant-numeric: tabular-nums;
   }
+
+  /* login hero — layered glass + copper glow, built entirely from existing
+     tokens so no new raw color ever needs to be introduced here. */
+  .glass-panel {
+    background: color-mix(in srgb, var(--color-surface) 55%, transparent);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid color-mix(in srgb, var(--color-edge) 60%, transparent);
+    box-shadow:
+      0 1px 0 color-mix(in srgb, var(--color-copper-bright) 10%, transparent) inset,
+      0 25px 60px -20px color-mix(in srgb, black 70%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--color-copper) 8%, transparent);
+  }
+
+  .glow-breathe {
+    animation: glow-breathe 6s ease-in-out infinite;
+  }
+
+  .float-slow {
+    animation: float-slow 14s ease-in-out infinite;
+  }
+
+  .float-slower {
+    animation: float-slow 19s ease-in-out infinite reverse;
+  }
+}
+
+@keyframes glow-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(2%, -4%, 0) scale(1.05);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
