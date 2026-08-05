@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Archivo, Inter } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { SettingsProvider } from "@/components/settings/settings-provider";
+import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { getSettings } from "@/lib/settings";
@@ -34,17 +35,20 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${archivo.variable} ${inter.variable} h-full antialiased`}
+      className={`${archivo.variable} ${inter.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="h-full flex flex-col overflow-hidden bg-background text-foreground">
-        <NuqsAdapter>
-          <TooltipProvider delayDuration={200}>
-            <SettingsProvider initialSettings={settings}>
-              {children}
-              <Toaster />
-            </SettingsProvider>
-          </TooltipProvider>
-        </NuqsAdapter>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <NuqsAdapter>
+            <TooltipProvider delayDuration={200}>
+              <SettingsProvider initialSettings={settings}>
+                {children}
+                <Toaster />
+              </SettingsProvider>
+            </TooltipProvider>
+          </NuqsAdapter>
+        </ThemeProvider>
       </body>
     </html>
   );

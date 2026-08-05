@@ -92,7 +92,11 @@ export default function LoginPage() {
         />
 
         <div className="relative z-10 mb-8 text-center lg:hidden">
-          <span className="font-display text-sm font-semibold tracking-wide text-ink">JUPITAR ECOM</span>
+          <span className="flex items-center justify-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-mark.png" alt="" width={24} height={24} className="size-6 rounded-md" />
+            <span className="font-display text-sm font-semibold tracking-wide text-ink">JUPITAR ECOM</span>
+          </span>
           <p className="mt-1 text-xs text-ink-faint">Know a winner before you list it.</p>
         </div>
 
@@ -102,7 +106,9 @@ export default function LoginPage() {
           transition={{ duration: 0.5, ease: "easeOut" }}
           className="glass-panel glow-breathe relative z-10 w-full max-w-sm rounded-3xl p-8"
         >
-          <span className="hidden font-display text-sm font-semibold tracking-wide text-ink lg:inline">
+          <span className="hidden items-center gap-2 font-display text-sm font-semibold tracking-wide text-ink lg:inline-flex">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-mark.png" alt="" width={24} height={24} className="size-6 rounded-md" />
             JUPITAR ECOM
           </span>
           <h1 className="mt-2 font-display text-2xl font-bold text-ink">

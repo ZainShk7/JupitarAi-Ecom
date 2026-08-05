@@ -85,6 +85,10 @@ export function LoginHero() {
         animate={reduceMotion ? undefined : "show"}
         className="relative z-10 max-w-md"
       >
+        <motion.div variants={reduceMotion ? undefined : item} className="mb-6">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-lockup.png" alt="Jupitar Ecom" width={83} height={96} className="h-24 w-auto" />
+        </motion.div>
         <motion.span
           variants={reduceMotion ? undefined : item}
           className="text-xs font-semibold tracking-[0.2em] text-copper-bright uppercase"

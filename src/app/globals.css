@@ -7,32 +7,46 @@
   Every hex value the app uses is defined exactly once, right here.
   Nothing else in the codebase should contain a raw hex literal —
   reference these custom properties (or their Tailwind utility aliases below).
+
+  @theme below declares the LIGHT (default) values — the logo's own cream
+  card, dark ink wordmark, and copper/bronze planet. The .dark block further
+  down overrides the same custom properties for dark mode (true black base,
+  the logo's bronze mid-tone as the secondary surface). Because these are
+  plain CSS custom properties, every utility class generated from @theme
+  (bg-base, text-ink, ...) automatically resolves to whichever value is in
+  scope — no per-component dark: variants needed anywhere else in the app.
 */
 @theme {
-  --color-base: #1c1c1c; /* matte wall */
-  --color-surface: #242424; /* cards, table */
-  --color-raised: #2e2e2e; /* hover, popovers */
-  --color-hairline: #383838;
-  --color-edge: #4a4a4a;
+  --color-base: #f6f1e7; /* logo's cream card */
+  --color-surface: #fffdf9; /* cards, table */
+  --color-raised: #efe7d8; /* hover, popovers */
+  --color-hairline: #e1d5c0;
+  --color-edge: #c9b99b;
 
-  --color-copper: #c4794f; /* primary accent */
-  --color-copper-bright: #e0a582; /* rose-gold highlight */
+  --color-copper: #c4794f; /* primary accent — fills, rings, buttons */
+  --color-copper-bright: #8a4a27; /* text-safe darker copper for accent TEXT on light surfaces (6:1 vs. base) */
   --color-mahogany: #6b2a1c; /* deep fill, chart secondary */
   --color-oxblood: #4a1810; /* danger / kill verdict */
+  /* fixed dark neutral for text drawn on top of --color-copper fills (e.g.
+     primary button labels) — always dark regardless of overall theme, since
+     copper is mid-lightness in both themes and needs dark text either way. */
+  --color-copper-ink: #1a1512;
+  /* logo's mid-tone bronze metal — only used as the dark-theme "secondary"
+     surface (see .dark below); given a sensible standalone value here too
+     so the token is never undefined. */
+  --color-bronze-secondary: #5a4030;
 
-  --color-ink: #f2ede9; /* warm off-white, never pure #fff */
-  --color-ink-dim: #a69b94;
-  /* the original #6e6560 read at 2.7:1 on --color-surface, well under WCAG AA
-     (4.5:1) — lightened just enough to pass against base/surface/raised. */
-  --color-ink-faint: #9c9590;
+  --color-ink: #2a221e; /* dark warm ink, sampled from the logo wordmark */
+  --color-ink-dim: #6e6054;
+  --color-ink-faint: #756759; /* 4.9:1 vs. base, 5.4:1 vs. surface — clears WCAG AA */
 
-  --color-good: #7fa65c; /* olive-leaning green */
-  --color-warn: #d9a03c;
-  --color-bad: #b4442e;
-  /* --color-bad as small text on our dark surfaces reads at ~2.8:1 — fails
-     WCAG AA (4.5:1). This lifts it toward --color-ink just enough to pass
-     against both --color-surface and --color-raised, without touching the
-     canonical --color-bad value used for fills. */
+  --color-good: #3f6b2e;
+  --color-warn: #8a5a10;
+  --color-bad: #a82f1e;
+  /* --color-bad as small text needs lifting toward --color-ink to guarantee
+     AA on every surface, in both themes — this mix stays correct either way
+     since --color-ink itself flips (dark ink in light mode, light ink in
+     dark mode), which is exactly the direction each theme needs. */
   --color-bad-text: color-mix(in srgb, var(--color-bad) 55%, var(--color-ink) 45%);
 
   --font-display: var(--font-archivo);
@@ -48,6 +62,30 @@
 }
 
 @custom-variant dark (&:is(.dark *));
+
+/*
+  Dark theme — true black base, existing copper kept (already tuned for a
+  dark backdrop), logo bronze promoted to the "secondary" surface.
+*/
+.dark {
+  --color-base: #0a0a0a;
+  --color-surface: #161412;
+  --color-raised: #201c18;
+  --color-hairline: #2c2620;
+  --color-edge: #40372d;
+
+  --color-copper-bright: #e0a582; /* rose-gold highlight, light enough for dark bg */
+
+  --color-ink: #f2ede9; /* warm off-white, never pure #fff */
+  --color-ink-dim: #a69b94;
+  --color-ink-faint: #9c9590;
+
+  --color-good: #7fa65c; /* olive-leaning green */
+  --color-warn: #d9a03c;
+  --color-bad: #b4442e;
+
+  color-scheme: dark;
+}
 
 @theme inline {
   --color-background: var(--background);
@@ -87,11 +125,15 @@
 }
 
 /*
-  Dark is the only theme — this app never renders a light surface.
-  Semantic (shadcn) roles are aliased onto the brand tokens above so
-  every primitive automatically picks up the copper/charcoal palette.
+  Semantic (shadcn) roles are aliased onto the brand tokens above so every
+  primitive automatically picks up the cream/copper (light) or black/bronze
+  (dark) palette. Most roles just reference a brand token and get the right
+  value "for free" since that token already flips under .dark — only
+  --secondary/--sidebar-accent are explicitly rewired per theme below,
+  since dark mode points them at the logo's bronze rather than a neutral.
 */
 :root {
+  color-scheme: light;
   --background: var(--color-base);
   --foreground: var(--color-ink);
   --card: var(--color-surface);
@@ -99,7 +141,7 @@
   --popover: var(--color-raised);
   --popover-foreground: var(--color-ink);
   --primary: var(--color-copper);
-  --primary-foreground: var(--color-base);
+  --primary-foreground: var(--color-copper-ink);
   --secondary: var(--color-raised);
   --secondary-foreground: var(--color-ink);
   --muted: var(--color-raised);
@@ -120,11 +162,17 @@
   --sidebar: var(--color-surface);
   --sidebar-foreground: var(--color-ink);
   --sidebar-primary: var(--color-copper);
-  --sidebar-primary-foreground: var(--color-base);
+  --sidebar-primary-foreground: var(--color-copper-ink);
   --sidebar-accent: var(--color-raised);
   --sidebar-accent-foreground: var(--color-copper-bright);
   --sidebar-border: var(--color-hairline);
   --sidebar-ring: var(--color-copper);
+}
+
+.dark {
+  --secondary: var(--color-bronze-secondary);
+  --secondary-foreground: var(--color-ink);
+  --sidebar-accent: var(--color-bronze-secondary);
 }
 
 @layer base {
@@ -137,7 +185,6 @@
   }
   html {
     @apply font-sans;
-    color-scheme: dark;
   }
 }
 
