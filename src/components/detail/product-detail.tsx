@@ -128,7 +128,7 @@ export function ProductDetail({ product }: { product: ProductRow }) {
       return;
     }
     toast.success(`Deleted "${fields.name}"`);
-    router.push("/");
+    router.push("/pipeline");
   }
 
   const priceForTargetMargin = useMemo(() => {
@@ -144,7 +144,7 @@ export function ProductDetail({ product }: { product: ProductRow }) {
     <div className="flex min-h-0 flex-1 flex-col overflow-auto p-6">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
         <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-1.5 text-xs text-ink-dim hover:text-ink">
+          <Link href="/pipeline" className="flex items-center gap-1.5 text-xs text-ink-dim hover:text-ink">
             <ArrowLeft className="size-3.5" />
             Pipeline
           </Link>

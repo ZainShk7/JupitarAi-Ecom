@@ -26,7 +26,7 @@ export async function createProduct(): Promise<ActionResultWithData<{ id: string
     const id = nanoid();
     const [row] = await db.insert(products).values({ id, ...NEW_PRODUCT_DEFAULTS }).returning();
     cacheInsertProduct(row);
-    revalidatePath("/");
+    revalidatePath("/pipeline");
     return { ok: true, data: { id } };
   } catch (error) {
     return fail(error);
@@ -49,7 +49,7 @@ export async function updateProduct(
       .where(eq(products.id, id))
       .returning();
     if (row) cacheUpdateProduct(row);
-    revalidatePath("/");
+    revalidatePath("/pipeline");
     return { ok: true };
   } catch (error) {
     return fail(error);
@@ -71,7 +71,7 @@ export async function duplicateProduct(id: string): Promise<ActionResultWithData
       })
       .returning();
     cacheInsertProduct(row);
-    revalidatePath("/");
+    revalidatePath("/pipeline");
     return { ok: true, data: { id: newId } };
   } catch (error) {
     return fail(error);
@@ -82,7 +82,7 @@ export async function deleteProduct(id: string): Promise<ActionResult> {
   try {
     await db.delete(products).where(eq(products.id, id));
     cacheDeleteProduct(id);
-    revalidatePath("/");
+    revalidatePath("/pipeline");
     return { ok: true };
   } catch (error) {
     return fail(error);
@@ -94,7 +94,7 @@ export async function restoreProduct(product: NewProduct): Promise<ActionResult>
   try {
     const [row] = await db.insert(products).values(product).returning();
     cacheInsertProduct(row);
-    revalidatePath("/");
+    revalidatePath("/pipeline");
     return { ok: true };
   } catch (error) {
     return fail(error);
@@ -128,7 +128,7 @@ export async function importProducts(
         failed++;
       }
     }
-    revalidatePath("/");
+    revalidatePath("/pipeline");
     return { ok: true, data: { imported, failed } };
   } catch (error) {
     return fail(error);
@@ -147,7 +147,7 @@ export async function updateSettings(patch: SettingsFieldsPatch): Promise<Action
       .set(parsed.data)
       .where(eq(settingsTable.id, SETTINGS_ROW_ID));
     revalidatePath("/");
-    revalidatePath("/dashboard");
+    revalidatePath("/pipeline");
     return { ok: true };
   } catch (error) {
     return fail(error);
