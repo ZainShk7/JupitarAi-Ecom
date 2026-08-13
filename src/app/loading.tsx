@@ -4,18 +4,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function Loading() {
   return (
     <>
-      <AppHeader active="pipeline" />
-      <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <div className="flex items-center gap-3 border-b border-hairline bg-surface px-4 py-3">
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-8 w-24" />
-          <Skeleton className="h-8 w-44" />
-          <Skeleton className="ml-auto h-8 w-28" />
-        </div>
-        <div className="flex flex-1 flex-col gap-px overflow-hidden p-4">
-          {Array.from({ length: 12 }, (_, i) => (
-            <Skeleton key={i} className="h-9 w-full shrink-0" />
-          ))}
+      <AppHeader active="dashboard" />
+      <main className="flex min-h-0 flex-1 flex-col overflow-auto p-6">
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {Array.from({ length: 4 }, (_, i) => (
+              <Skeleton key={i} className="h-24 w-full" />
+            ))}
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Skeleton className="h-72 w-full" />
+            <Skeleton className="h-72 w-full" />
+          </div>
         </div>
       </main>
     </>

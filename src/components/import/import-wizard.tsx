@@ -118,7 +118,7 @@ export function ImportWizard() {
             Import another file
           </Button>
           <Button asChild>
-            <Link href="/">Back to pipeline</Link>
+            <Link href="/pipeline">Back to pipeline</Link>
           </Button>
         </div>
       </div>

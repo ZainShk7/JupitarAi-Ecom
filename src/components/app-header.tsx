@@ -17,19 +17,19 @@ export function AppHeader({ active }: { active: "pipeline" | "import" | "dashboa
           href="/"
           className={cn(
             "whitespace-nowrap transition-colors",
-            active === "pipeline" ? "text-copper-bright" : "text-ink-dim hover:text-ink",
-          )}
-        >
-          Pipeline
-        </Link>
-        <Link
-          href="/dashboard"
-          className={cn(
-            "whitespace-nowrap transition-colors",
             active === "dashboard" ? "text-copper-bright" : "text-ink-dim hover:text-ink",
           )}
         >
           Dashboard
+        </Link>
+        <Link
+          href="/pipeline"
+          className={cn(
+            "whitespace-nowrap transition-colors",
+            active === "pipeline" ? "text-copper-bright" : "text-ink-dim hover:text-ink",
+          )}
+        >
+          Pipeline
         </Link>
         <Link
           href="/import"

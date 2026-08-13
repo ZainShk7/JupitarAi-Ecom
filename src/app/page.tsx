@@ -1,23 +1,17 @@
 import { AppHeader } from "@/components/app-header";
-import { PipelineGrid } from "@/components/pipeline/pipeline-grid";
-import { loadPipelineSearchParams } from "@/lib/pipeline-query";
-import { getPipelineData } from "@/lib/products";
+import { Dashboard } from "@/components/dashboard/dashboard";
+import { getDashboardRows } from "@/lib/products";
 
 export const dynamic = "force-dynamic";
 
-export default async function Home({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const query = await loadPipelineSearchParams(searchParams);
-  const data = await getPipelineData(query);
+export default async function Home() {
+  const rows = await getDashboardRows();
 
   return (
     <>
-      <AppHeader active="pipeline" />
+      <AppHeader active="dashboard" />
       <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <PipelineGrid data={data} />
+        <Dashboard rows={rows} />
       </main>
     </>
   );
